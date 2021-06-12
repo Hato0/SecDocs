@@ -1,8 +1,8 @@
-## Web Knowledge 
-#### SQL injection
+# Web Knowledge 
+## SQL injection
 A SQL injection (SQLi) is a type of security exploit in which the attacker adds Structured Query Language (SQL) code to a Web form input box in order to gain access to unauthorized resources or make changes to sensitive data. An SQL query is a request for some action to be performed on a database. When executed correctly, a SQL injection can expose intellectual property, the personal information of customers, administrative credentials or private business details.
 
-###### SQLi Basics
+#### SQLi Basics
 Here will be some basics informations to get when you have a successfull injection
 
 - SQL injection attack, querying the database type and version on Oracle
@@ -19,7 +19,7 @@ Here will be some basics informations to get when you have a successfull injecti
 	- Oracle DB
 		`select * from all_tables`
 
-###### Union SQL attack 
+#### Union SQL attack 
 These attacks are perform to extract data using the same amount of row than the initial result could display. For this attack, working conditions are:
 -   The individual queries must return the same number of columns.
 -   The data types in each column must be compatible between the individual queries
@@ -41,7 +41,7 @@ You can have those following examples :
 	- ``` union select CHAMP1 || 'SEPERATOR' || CHAMP2 .... from TABLE_NAME--```
 		*Very usefull when you only have the capacity to extract data from a uniq column*
 		
-###### Blind SQL attack 
+#### Blind SQL attack 
 
 - Conditional responses
 	The goal here is to exfiltrate char by char fields using for exemple a query looking like this one : 
@@ -76,7 +76,7 @@ You can have those following examples :
 - SQL injection vulnerability allowing login bypass
 	* Very simple : `username'--`
 
-###### How to prevent them 
+#### How to prevent them 
 
 If a SQL injection attack is successfully carried out, the damage could be expensive in terms of resources and customer trust. That is why detecting this type of attack in a timely manner is important. Web application firewalls (WAF) are the most common tool used to filter out SQLi attacks. WAFs are based on a library of updated attack signatures and can be configured to flag malicious SQL queries.
 
@@ -91,7 +91,7 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 -   Remove the display of database error messages to the users.
 
 
-#### Cross-site scripting
+## Cross-site scripting
 - Reflected XSS into HTML context with nothing encoded
 - Reflected XSS into HTML context with most tags and attributes blocked
 - Reflected XSS into HTML context with all tags blocked except custom ones
@@ -122,7 +122,7 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - Reflected XSS protected by CSP, with dangling markup attack
 - Reflected XSS protected by very strict CSP, with dangling markup attack
 - Reflected XSS protected by CSP, with CSP bypass
-#### Cross-site request forgery (CSRF)
+## Cross-site request forgery (CSRF)
 - CSRF vulnerability with no defenses
 - CSRF where token validation depends on request method
 - CSRF where token validation depends on token being present
@@ -131,13 +131,13 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - CSRF where token is duplicated in cookie
 - CSRF where Referer validation depends on header being present
 - CSRF with broken Referer validation
-#### Clickjacking
+## Clickjacking
 - Basic clickjacking with CSRF token protection
 - Clickjacking with form input data prefilled from a URL parameter
 - Clickjacking with a frame buster script
 - Exploiting clickjacking vulnerability to trigger DOM-based XSS
 - Multistep clickjacking
-#### DOM-based vulnerabilities
+## DOM-based vulnerabilities
 - DOM XSS using web messages
 - DOM XSS using web messages and a JavaScript URL
 - DOM XSS using web messages and JSON.parse
@@ -145,12 +145,12 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - DOM-based cookie manipulation
 - Exploiting DOM clobbering to enable XSS
 - Clobbering DOM attributes to bypass HTML filters
-#### Cross-origin resource sharing (CORS)
+## Cross-origin resource sharing (CORS)
 - CORS vulnerability with basic origin reflection
 - CORS vulnerability with trusted null origin
 - CORS vulnerability with trusted insecure protocols
 - CORS vulnerability with internal network pivot attack
-#### XML external entity (XXE) injection
+## XML external entity (XXE) injection
 - Exploiting XXE using external entities to retrieve files
 - Exploiting XXE to perform SSRF attacks
 - Blind XXE with out-of-band interaction
@@ -160,7 +160,7 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - Exploiting XXE to retrieve data by repurposing a local DTD
 - Exploiting XInclude to retrieve files
 - Exploiting XXE via image file upload
-#### Server-side request forgery (SSRF)
+## Server-side request forgery (SSRF)
 - Basic SSRF against the local server
 - Basic SSRF against another back-end system
 - SSRF with blacklist-based input filter
@@ -168,7 +168,7 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - SSRF with filter bypass via open redirection vulnerability
 - Blind SSRF with out-of-band detection
 - Blind SSRF with Shellshock exploitation
-#### HTTP request smuggling
+## HTTP request smuggling
 - HTTP request smuggling, basic CL.TE vulnerability
 - HTTP request smuggling, basic TE.CL vulnerability
 - HTTP request smuggling, obfuscating the TE header
@@ -181,13 +181,13 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - Exploiting HTTP request smuggling to deliver reflected XSS
 - Exploiting HTTP request smuggling to perform web cache poisoning
 - Exploiting HTTP request smuggling to perform web cache deception
-#### OS command injection
+## OS command injection
 - OS command injection, simple case
 - Blind OS command injection with time delays
 - Blind OS command injection with output redirection
 - Blind OS command injection with out-of-band interaction
 - Blind OS command injection with out-of-band data exfiltration
-#### Server-side template injection
+## Server-side template injection
 - Basic server-side template injection
 - Basic server-side template injection (code context)
 - Server-side template injection using documentation
@@ -195,14 +195,14 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - Server-side template injection with information disclosure via user-supplied objects
 - Server-side template injection in a sandboxed environment
 - Server-side template injection with a custom exploit
-#### Directory traversal
+## Directory traversal
 - File path traversal, simple case
 - File path traversal, traversal sequences blocked with absolute path bypass
 - File path traversal, traversal sequences stripped non-recursively
 - File path traversal, traversal sequences stripped with superfluous URL-decode
 - File path traversal, validation of start of path
 - File path traversal, validation of file extension with null byte bypass
-#### Access control vulnerabilities
+## Access control vulnerabilities
 - Unprotected admin functionality
 - Unprotected admin functionality with unpredictable URL
 - User role controlled by request parameter
@@ -219,7 +219,7 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 		
 - Referer-based access control
 		
-#### Authentication
+## Authentication
 - Username enumeration via different responses
 - Username enumeration via subtly different responses
 - Username enumeration via response timing
@@ -234,11 +234,11 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - Password reset broken logic
 - Password reset poisoning via middleware
 - Password brute-force via password change
-#### WebSockets
+## WebSockets
 - Manipulating WebSocket messages to exploit vulnerabilities
 - Manipulating the WebSocket handshake to exploit vulnerabilities
 - Cross-site WebSocket hijacking
-#### Web cache poisoning
+## Web cache poisoning
 - Web cache poisoning with an unkeyed header
 - Web cache poisoning with an unkeyed cookie
 - Web cache poisoning with multiple headers
@@ -252,7 +252,7 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - URL normalization
 - Cache key injection
 - Internal cache poisoning
-#### Insecure deserialization
+## Insecure deserialization
 - Modifying serialized objects
 - Modifying serialized data types
 - Using application functionality to exploit insecure deserialization
@@ -263,13 +263,13 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - Developing a custom gadget chain for Java deserialization
 - Developing a custom gadget chain for PHP deserialization
 - Using PHAR deserialization to deploy a custom gadget chain
-#### Information disclosure
+## Information disclosure
 - Information disclosure in error messages
 - Information disclosure on debug page
 - Source code disclosure via backup files
 - Authentication bypass via information disclosure
 - Information disclosure in version control history
-#### Business logic vulnerabilities
+## Business logic vulnerabilities
 - Excessive trust in client-side controls
 - High-level logic vulnerability
 - Low-level logic flaw
@@ -281,14 +281,14 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - Flawed enforcement of business rules
 - Infinite money logic flaw
 - Authentication bypass via encryption oracle
-#### HTTP Host header attacks
+## HTTP Host header attacks
 - Basic password reset poisoning
 - Password reset poisoning via dangling markup
 - Web cache poisoning via ambiguous requests
 - Host header authentication bypass
 - Routing-based SSRF
 - SSRF via flawed request parsing
-#### OAuth authentication
+## OAuth authentication
 - Authentication bypass via OAuth implicit flow
 - Forced OAuth profile linking
 - OAuth account hijacking via redirect_uri
