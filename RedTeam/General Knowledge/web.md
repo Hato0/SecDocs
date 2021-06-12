@@ -305,6 +305,15 @@ As the vulnaribility is app specific, there will be no example and you will have
 CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code injection and more. CSP can be found on the server answer. You can use a [checker](https://csp-evaluator.withgoogle.com/) to dig in what you have in front of you. As the topic is large again here is a [link](https://book.hacktricks.xyz/pentesting-web/content-security-policy-csp-bypass) to understand what the checker gave you 
 
 
+#### How to prevent them 
+
+-   **Filter input on arrival.** At the point where user input is received, filter as strictly as possible based on what is expected or valid input.
+-   **Encode data on output.** At the point where user-controllable data is output in HTTP responses, encode the output to prevent it from being interpreted as active content. Depending on the output context, this might require applying combinations of HTML, URL, JavaScript, and CSS encoding.
+-   **Use appropriate response headers.** To prevent XSS in HTTP responses that aren't intended to contain any HTML or JavaScript, you can use the `Content-Type` and `X-Content-Type-Options` headers to ensure that browsers interpret the responses in the way you intend.
+-   **Content Security Policy.** As a last line of defense, you can use Content Security Policy (CSP) to reduce the severity of any XSS vulnerabilities that still occur.
+
+
+
 ## Cross-site request forgery (CSRF)
 - CSRF vulnerability with no defenses
 - CSRF where token validation depends on request method
