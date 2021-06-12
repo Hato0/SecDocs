@@ -326,12 +326,16 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 
 
 ## Clickjacking
+
 - Basic clickjacking with CSRF token protection
 - Clickjacking with form input data prefilled from a URL parameter
 - Clickjacking with a frame buster script
 - Exploiting clickjacking vulnerability to trigger DOM-based XSS
 - Multistep clickjacking
+
+
 ## DOM-based vulnerabilities
+
 - DOM XSS using web messages
 - DOM XSS using web messages and a JavaScript URL
 - DOM XSS using web messages and JSON.parse
@@ -339,12 +343,18 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 - DOM-based cookie manipulation
 - Exploiting DOM clobbering to enable XSS
 - Clobbering DOM attributes to bypass HTML filters
+
+
 ## Cross-origin resource sharing (CORS)
+
 - CORS vulnerability with basic origin reflection
 - CORS vulnerability with trusted null origin
 - CORS vulnerability with trusted insecure protocols
 - CORS vulnerability with internal network pivot attack
+
+
 ## XML external entity (XXE) injection
+
 - Exploiting XXE using external entities to retrieve files
 - Exploiting XXE to perform SSRF attacks
 - Blind XXE with out-of-band interaction
@@ -354,7 +364,10 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 - Exploiting XXE to retrieve data by repurposing a local DTD
 - Exploiting XInclude to retrieve files
 - Exploiting XXE via image file upload
+
+
 ## Server-side request forgery (SSRF)
+
 - Basic SSRF against the local server
 - Basic SSRF against another back-end system
 - SSRF with blacklist-based input filter
@@ -362,7 +375,10 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 - SSRF with filter bypass via open redirection vulnerability
 - Blind SSRF with out-of-band detection
 - Blind SSRF with Shellshock exploitation
+
+
 ## HTTP request smuggling
+
 - HTTP request smuggling, basic CL.TE vulnerability
 - HTTP request smuggling, basic TE.CL vulnerability
 - HTTP request smuggling, obfuscating the TE header
@@ -375,13 +391,19 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 - Exploiting HTTP request smuggling to deliver reflected XSS
 - Exploiting HTTP request smuggling to perform web cache poisoning
 - Exploiting HTTP request smuggling to perform web cache deception
+
+
 ## OS command injection
+
 - OS command injection, simple case
 - Blind OS command injection with time delays
 - Blind OS command injection with output redirection
 - Blind OS command injection with out-of-band interaction
 - Blind OS command injection with out-of-band data exfiltration
+
+
 ## Server-side template injection
+
 - Basic server-side template injection
 - Basic server-side template injection (code context)
 - Server-side template injection using documentation
@@ -389,14 +411,20 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 - Server-side template injection with information disclosure via user-supplied objects
 - Server-side template injection in a sandboxed environment
 - Server-side template injection with a custom exploit
+
+
 ## Directory traversal
+
 - File path traversal, simple case
 - File path traversal, traversal sequences blocked with absolute path bypass
 - File path traversal, traversal sequences stripped non-recursively
 - File path traversal, traversal sequences stripped with superfluous URL-decode
 - File path traversal, validation of start of path
 - File path traversal, validation of file extension with null byte bypass
+
+
 ## Access control vulnerabilities
+
 - Unprotected admin functionality
 - Unprotected admin functionality with unpredictable URL
 - User role controlled by request parameter
@@ -413,7 +441,9 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 		
 - Referer-based access control
 		
+		
 ## Authentication
+
 - Username enumeration via different responses
 - Username enumeration via subtly different responses
 - Username enumeration via response timing
@@ -428,11 +458,17 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 - Password reset broken logic
 - Password reset poisoning via middleware
 - Password brute-force via password change
+
+
 ## WebSockets
+
 - Manipulating WebSocket messages to exploit vulnerabilities
 - Manipulating the WebSocket handshake to exploit vulnerabilities
 - Cross-site WebSocket hijacking
+
+
 ## Web cache poisoning
+
 - Web cache poisoning with an unkeyed header
 - Web cache poisoning with an unkeyed cookie
 - Web cache poisoning with multiple headers
@@ -446,7 +482,10 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 - URL normalization
 - Cache key injection
 - Internal cache poisoning
+
+
 ## Insecure deserialization
+
 - Modifying serialized objects
 - Modifying serialized data types
 - Using application functionality to exploit insecure deserialization
@@ -457,35 +496,34 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 - Developing a custom gadget chain for Java deserialization
 - Developing a custom gadget chain for PHP deserialization
 - Using PHAR deserialization to deploy a custom gadget chain
+
+
 ## Information disclosure
+
 - Information disclosure in error messages
 - Information disclosure on debug page
 - Source code disclosure via backup files
 - Authentication bypass via information disclosure
 - Information disclosure in version control history
-## Business logic vulnerabilities
-- Excessive trust in client-side controls
-- High-level logic vulnerability
-- Low-level logic flaw
-- Inconsistent handling of exceptional input
-- Inconsistent security controls
-- Weak isolation on dual-use endpoint
-- Insufficient workflow validation
-- Authentication bypass via flawed state machine
-- Flawed enforcement of business rules
-- Infinite money logic flaw
-- Authentication bypass via encryption oracle
+
+
 ## HTTP Host header attacks
+
 - Basic password reset poisoning
 - Password reset poisoning via dangling markup
 - Web cache poisoning via ambiguous requests
 - Host header authentication bypass
 - Routing-based SSRF
 - SSRF via flawed request parsing
+
+
 ## OAuth authentication
+
 - Authentication bypass via OAuth implicit flow
 - Forced OAuth profile linking
 - OAuth account hijacking via redirect_uri
 - Stealing OAuth access tokens via an open redirect
 - Stealing OAuth access tokens via a proxy page
 - SSRF via OpenID dynamic client registration
+
+
