@@ -505,8 +505,3 @@ To kill all running containers
 ```
 docker kill $(docekr ps -q ) 
 ```
-
-
-## Contributor - 
-
-[Sangam biradar](https://twitter.com/BiradarSangam) - Docker Community Leader
