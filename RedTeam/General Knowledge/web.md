@@ -4,12 +4,12 @@
 
   * [SQL injection](#sql-injection)
   * [Cross-site scripting](#cross-site-scripting)
-  * [Cross-site request forgery (CSRF)](#cross-site-request-forgery-\(csrf\))
+  * [Cross-site request forgery (CSRF)](#cross-site-request-forgery)
   * [Clickjacking](#clickjacking)
   * [DOM-based vulnerabilities](#dom-based-vulnerabilities)
-  * [Cross-origin resource sharing (CORS)](#cross-origin-resource-sharing-\(cors\))
-  * [XML external entity (XXE) injection](#xml-external-entity-\(xxe\)-injection)
-  * [Server-side request forgery (SSRF)](#server-side-request-forgery-\(ssrf\))
+  * [Cross-origin resource sharing (CORS)](#cross-origin-resource-sharing)
+  * [XML external entity (XXE) injection](#xml-external-entity-injection)
+  * [Server-side request forgery (SSRF)](#server-side-request-forgery)
   * [HTTP request smuggling](#http-request-smuggling)
   * [OS command injection](#os-command-injection)
   * [Server-side template injection](#server-side-template-injection)
@@ -339,7 +339,7 @@ CSP or 'Content Security Policy ' is a protection to XSS, clickjacking, code inj
 
 
 
-## Cross-site request forgery (CSRF)
+## Cross-site request forgery
 
 Cross-site request forgery (also known as CSRF) is a web security vulnerability that allows an attacker to induce users to perform actions that they do not intend to perform. This attack can happend by phishing, clone site, etc ... Conditions have to be present for this attack  to be perform : 
 
@@ -635,9 +635,9 @@ There is also DOM clobbering, same goal, different approach, your goal here is t
 - Untrusted data have to be handle carefully  
 
 
-## Cross-origin resource sharing (CORS)
+## Cross-origin resource sharing
 
-Cross-origin resource sharing is a browser mechanism which enables controlled access to resources located outside of a given domain.  It can provide an attack vector to cross-domain based attacks, if a website's CORS policy is poorly configured and implemented. 
+Cross-origin resource sharing (CORS) is a browser mechanism which enables controlled access to resources located outside of a given domain.  It can provide an attack vector to cross-domain based attacks, if a website's CORS policy is poorly configured and implemented. 
 
 To check for the Access-Control-Allow-Origin value you can send a request including the following header:
 `Origin: WEBSITE`
@@ -779,7 +779,7 @@ CORS are only present due to misconfigurations, you can use these headers to con
 	   -	Avoid local things as you don't protect your colleagues actions
 
 
-## XML external entity (XXE) injection
+## XML external entity injection
 
 XXE is a specific attack against XML application. It can allow an attacker to view files, interact directly with the backend, or other application related to the corrupt one. This attack is perform as an initial vector for SSRF. To check for the vulnerability you will have to intercept the request and change the post data. Post data are used in 99.99% for XML applications.
 
@@ -904,9 +904,9 @@ XXE is a specific attack against XML application. It can allow an attacker to vi
 XXE exist due to bad handle of user input or used of dangerous function in used librairie.
 The best way to prevent them is to include only necessaries functions or remove unnecessaries ones. Import ones to disable is `XInclude` and `external entities resolutions`
 
-## Server-side request forgery (SSRF)
+## Server-side request forgery
 
-In a Server-Side Request Forgery attack, the attacker can abuse functionality on the server to read or update internal resources. The attacker can supply or modify a URL which the code running on the server will read or submit data to, and by carefully selecting the URLs, the attacker may be able to read server configuration such as AWS metadata, connect to internal services like http enabled databases or perform post requests towards internal services which are not intended to be exposed.
+In a Server-Side Request Forgery (SSRF) attack, the attacker can abuse functionality on the server to read or update internal resources. The attacker can supply or modify a URL which the code running on the server will read or submit data to, and by carefully selecting the URLs, the attacker may be able to read server configuration such as AWS metadata, connect to internal services like http enabled databases or perform post requests towards internal services which are not intended to be exposed.
 
 ![alt Server-Side Request Forgery](https://www.vaadata.com/blog/wp-content/uploads/2018/05/SSRF-EN.jpg)
 
