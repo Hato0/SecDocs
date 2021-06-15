@@ -1,5 +1,30 @@
 # Web Knowledge 
-## SQL injection
+
+## Content table
+
+  * [SQL injection](#sql-injection)
+  * [Cross-site scripting](#cross-site-scripting)
+  * [Cross-site request forgery (CSRF)](#cross-site-request-forgery--csrf-)
+  * [Clickjacking](#clickjacking)
+  * [DOM-based vulnerabilities](#dom-based-vulnerabilities)
+  * [Cross-origin resource sharing (CORS)](#cross-origin-resource-sharing--cors-)
+  * [XML external entity (XXE) injection](#xml-external-entity--xxe--injection)
+  * [Server-side request forgery (SSRF)](#server-side-request-forgery--ssrf-)
+  * [HTTP request smuggling](#http-request-smuggling)
+  * [OS command injection](#os-command-injection)
+  * [Server-side template injection](#server-side-template-injection)
+  * [Directory traversal](#directory-traversal)
+  * [Access control vulnerabilities](#access-control-vulnerabilities)
+  * [Authentication](#authentication)
+  * [WebSockets](#websockets)
+  * [Web cache poisoning](#web-cache-poisoning)
+  * [Insecure deserialization](#insecure-deserialization)
+  * [Information disclosure](#information-disclosure)
+  * [HTTP Host header attacks](#http-host-header-attacks)
+  * [OAuth authentication](#oauth-authentication)
+
+
+## SQL injection 
 
 A SQL injection (SQLi) is a type of security exploit in which the attacker adds Structured Query Language (SQL) code to a Web form input box in order to gain access to unauthorized resources or make changes to sensitive data. An SQL query is a request for some action to be performed on a database. When executed correctly, a SQL injection can expose intellectual property, the personal information of customers, administrative credentials or private business details.
 
